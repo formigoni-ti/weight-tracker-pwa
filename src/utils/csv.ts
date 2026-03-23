@@ -12,7 +12,7 @@ function parseFlexibleDate(raw: string): string | null {
   if (parts.length >= 2) {
     const month = parts[0].padStart(2, "0");
     const day = parts[1].padStart(2, "0");
-    let year = "2025";
+    let year = String(new Date().getFullYear());
     if (parts.length === 3) {
       year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
     }

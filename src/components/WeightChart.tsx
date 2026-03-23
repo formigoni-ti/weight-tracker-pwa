@@ -157,6 +157,7 @@ export default function WeightChart({ entries, goalWeight, unit }: Props) {
             strokeWidth={2}
             strokeDasharray="6 4"
             dot={false}
+            connectNulls
             name="Trend"
           />
           {goalWeight && (

@@ -50,11 +50,8 @@ export function computeTrendLine(
   const reg = linearRegression(points);
   if (!reg) return [];
 
-  return sorted.map((e) => {
-    const dayOffset = (new Date(e.date).getTime() - baseTime) / msPerDay;
-    return {
-      date: e.date,
-      trend: Math.round((reg.slope * dayOffset + reg.intercept) * 10) / 10,
-    };
-  });
+  return sorted.map((e, i) => ({
+    date: e.date,
+    trend: Math.round((reg.slope * points[i].x + reg.intercept) * 10) / 10,
+  }));
 }

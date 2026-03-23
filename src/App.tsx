@@ -7,13 +7,38 @@ import LogEntryModal from "./components/LogEntryModal";
 import { useEntries } from "./hooks/useEntries";
 import { useSettings } from "./hooks/useSettings";
 import { parseCSV, toWeightEntries } from "./utils/csv";
-import type { WeightEntry } from "./db";
+import { db, type WeightEntry } from "./db";
 
 function AppContent() {
   const { entries, addEntry, updateEntry, deleteEntry, getEntryByDate, bulkAdd, clearAll } =
     useEntries();
   const { settings, updateSettings } = useSettings();
   const seeded = useRef(false);
+  const migrated = useRef(false);
+
+  // Migrate stale 2025 seed entries to current year
+  useEffect(() => {
+    if (migrated.current || entries.length === 0) return;
+    migrated.current = true;
+    const currentYear = String(new Date().getFullYear());
+    const stale = entries.filter((e) => e.date.startsWith("2025-"));
+    if (stale.length === 0) return;
+
+    const currentYearDates = new Set(
+      entries.filter((e) => e.date.startsWith(currentYear + "-")).map((e) => e.date)
+    );
+
+    db.transaction("rw", db.entries, async () => {
+      for (const entry of stale) {
+        const newDate = entry.date.replace("2025-", currentYear + "-");
+        if (currentYearDates.has(newDate)) {
+          await db.entries.delete(entry.id);
+        } else {
+          await db.entries.update(entry.id, { date: newDate });
+        }
+      }
+    });
+  }, [entries]);
 
   useEffect(() => {
     if (seeded.current || entries.length > 0) return;
